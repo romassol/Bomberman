@@ -1,0 +1,14 @@
+{
+    "monster speed": 100
+    "field": [
+        B N W N N N N W N N N N N N N N W N W N
+        W N W N N N N N W N W N N W M W W N M N
+        N N W N W N D N N N N N N N N N N N W W
+        N N N N W N N N M N N N N W W W N W W W
+        W W N W N N N W W N N N N N N W N W N N
+        W N M N N W N W N W N N N W N N N W N N
+        N W W N N N N W N N W N N N W N N N N W
+        N N N N N N N N N W W N N N N N W W W W
+        W N W N W N N N N W W W N N W N N N N W
+        W W N W N W W N N N N W N W N N W W W W
+}

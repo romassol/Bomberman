@@ -1,0 +1,14 @@
+B - bomberman
+. - nothing
+M - monster
+# - impassable not destroyed wall
+* - impassable destroyed wall
+U - passable up not destroyed wall
+D - passable down not destroyed wall
+R - passable right not destroyed wall
+L - passable left not destroyed wall
+u - passable up destroyed wall
+d - passable down destroyed wall
+r - passable right destroyed wall
+l - passable left destroyed wall
+E - дверь
