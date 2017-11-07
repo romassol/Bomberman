@@ -11,4 +11,6 @@ u - passable up destroyed wall
 d - passable down destroyed wall
 r - passable right destroyed wall
 l - passable left destroyed wall
-E - дверь
+
+1 - life
+2, 3 - bombs

@@ -9,24 +9,22 @@ from bomberman import BomberMan
 from wall import Wall
 from monster import Monster
 from door import Door
-from prize_bomb import Prize_bomb
-from prize_life import Prize_life
+from prizebomb import PrizeBomb
+from prizelife import PrizeLife
 
 
 class Reader:
     def __init__(self, file_name):
-        self.classes = {"B": BomberMan, "#": Wall, "*": Wall, "U": Wall,
-                        "D": Wall, "R": Wall, "L": Wall, "u": Wall,
-                        "d": Wall, "r": Wall, "l": Wall, "M": Monster, "E": Door}
-        self.walls = {"#": [False, None], "*": [True, None], "U": [False, 'u'],
-                        "D": [False, 'd'], "R": [False, 'r'], "L": [False, 'l'],
-                        "u": [True, 'u'], "d": [True, 'd'], "r": [True, 'r'],
-                        "l": [True, 'l']}
-        self.prize = {"2": Prize_bomb, "3": Prize_bomb, "1": Prize_life}
+        self.classes = {"B": BomberMan, "#": Wall, "*": Wall, "U": Wall, "D": Wall, "R": Wall, "L": Wall, "u": Wall,
+                        "d": Wall, "r": Wall, "l": Wall, "M": Monster}
+        self.walls = {"#": [False, None], "*": [True, None], "U": [False, 'u'], "D": [False, 'd'], "R": [False, 'r'],
+                      "L": [False, 'l'], "u": [True, 'u'], "d": [True, 'd'], "r": [True, 'r'], "l": [True, 'l']}
+        self.prize = {"2": PrizeBomb, "3": PrizeBomb, "1": PrizeLife}
         self.objects = {}
         self.height = 0
         self.width = 0
         self.monster_speed = 0
+        self.door_position = Point(0, 0)
         self.is_reading_field = False
         self.is_reading_prizes = False
         self.file = ''
@@ -137,4 +135,4 @@ class Reader:
 
 
 if __name__ == '__main__':
-    r = Reader('input_test.txt')
+    r = Reader('level1.txt')

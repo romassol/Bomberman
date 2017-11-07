@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from read_field_from_file import Reader
+from readfieldfromfile import Reader
 from point import Point
 from bomberman import BomberMan
 from wall import Wall
@@ -10,7 +10,7 @@ from monster import Monster
 class TestPoint(TestCase):
 
     def test_read_file_simple(self):
-        r = Reader('input_test.txt')
+        r = Reader('level1.txt')
         self.assertEqual(r.height, 5)
         self.assertEqual(r.width, 5)
 

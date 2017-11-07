@@ -4,7 +4,7 @@ from PyQt5.QtCore import QSize
 from PyQt5.Qt import Qt
 
 
-class Icon_image(QPushButton):
+class IconImage(QPushButton):
     def __init__(self, parent, position, size, image):
         super().__init__(parent)
         self.position = position

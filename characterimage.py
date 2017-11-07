@@ -4,7 +4,7 @@ from PyQt5.QtCore import QSize
 from PyQt5.Qt import Qt
 
 
-class Character_image(QPushButton):
+class CharacterImage(QPushButton):
     def __init__(self, parent, character, size_square, image):
         super().__init__(parent)
         self.character = character

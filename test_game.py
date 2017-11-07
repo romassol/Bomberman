@@ -7,10 +7,10 @@ from wall import Wall
 from monster import Monster
 
 
-class TestPoint(TestCase):
+class TestGame(TestCase):
 
     def test_moving_bm_forbidden(self):
-        g = Game('input_test.txt')
+        g = Game('level1.txt')
         for b in g.BomberMan:
             bm = b
         old_position = copy.deepcopy(bm.position)
@@ -32,7 +32,7 @@ class TestPoint(TestCase):
         self.assertEqual(bm.position, old_position)
 
     def test_moving_bm_allowed(self):
-        g = Game('input_test.txt')
+        g = Game('level1.txt')
         for b in g.BomberMan:
             bm = b
         g.moving('r', bm)
@@ -51,7 +51,7 @@ class TestPoint(TestCase):
         self.assertEqual(bm.position, Point(2, 1))
 
     def test_bm_is_dead(self):
-        g = Game('input_test.txt')
+        g = Game('level1.txt')
         for b in g.BomberMan:
             bm = b
         old_lives = copy.deepcopy(bm.count_of_lives)
@@ -70,10 +70,10 @@ class TestPoint(TestCase):
         g.moving('l', bm)
         g.is_monster_kill_BM()
         self.assertEqual(bm.count_of_lives, old_lives - 3)
-        self.assertTrue(g.is_gameover)
+        self.assertTrue(g.is_game_over)
 
     def test_bomb(self):
-        g = Game('input_test.txt')
+        g = Game('level1.txt')
         for b in g.BomberMan:
             bm = b
         g.moving('r', bm)

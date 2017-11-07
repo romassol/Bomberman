@@ -5,31 +5,45 @@ import os
 from bomberman import BomberMan
 from wall import Wall
 from monster import Monster
-from read_field_from_file import Reader
+from readfieldfromfile import Reader
 from point import Point
 from bomb import Bomb
+from door import Door
 
 
 class Level:
     def __init__(self, file_name):
         r = Reader(file_name)
         self.__dict__ = r.objects
+
         for b in self.BomberMan:
             self.Bomb = Bomb(b)
 
-        self.monster_speed = r.monster_speed
+        self.set_speed_all_monsters(r)
+
         self.height = r.height
         self.width = r.width
-        self.is_gameover = False
-        self.is_BM_lifes_changed = False
-        self.is_BM_lifes_increased = False
+
+        self.is_over = False
+        # self.is_win = False
+        self.points = 0
+        self.scoring = {'Monster': 100, 'Wall': 5}
+
+        self.is_BM_lives_changed = False
+        # self.is_BM_lives_increased = False
+
         self.explode_area = self.Bomb.power
         self.direc = {'r': 1, 'l': -1, 'u': -1, 'd': 1}
+
+    def set_speed_all_monsters(self, r):
+        for m in self.Monster:
+            m.set_speed(r.monster_speed)
 
     def put_bomb(self):
         for b in self.BomberMan:
             if not b.backpack:
                 self.Bomb = Bomb(b)
+                self.points -= 10
             else:
                 self.Bomb = b.backpack.pop()
             self.Bomb.position = copy.deepcopy(b.position)
@@ -40,7 +54,7 @@ class Level:
     def get_explode_area(self):
         not_destroyed_walls = {f.position for f in self.Wall if not f.is_destroyed}
         points = set()
-        range_lists = [range(-1, -self.explode_area-1, -1), range(self.explode_area + 1)]
+        range_lists = [range(-1, -self.explode_area - 1, -1), range(self.explode_area + 1)]
         for p in range_lists:
             self.add_available_point_on_Y(not_destroyed_walls, points, p)
             self.add_available_point_on_X(not_destroyed_walls, points, p)
@@ -48,8 +62,7 @@ class Level:
 
     def add_available_point_on_Y(self, not_destroyed_walls, points, range_list):
         for i in range_list:
-            if (self.Bomb.position.y + i >= 0 and
-                    self.Bomb.position.y + i <= self.height - 1):
+            if 0 <= self.Bomb.position.y + i <= self.height - 1:
                 point = Point(self.Bomb.position.x, self.Bomb.position.y + i)
                 if point in not_destroyed_walls:
                     break
@@ -57,8 +70,7 @@ class Level:
 
     def add_available_point_on_X(self, not_destroyed_walls, points, range_list):
         for i in range_list:
-            if (self.Bomb.position.x + i >= 0 and
-                    self.Bomb.position.x + i <= self.width - 1):
+            if 0 <= self.Bomb.position.x + i <= self.width - 1:
                 point = Point(self.Bomb.position.x + i, self.Bomb.position.y)
                 if point in not_destroyed_walls:
                     break
@@ -76,11 +88,17 @@ class Level:
         for one_of_set in list_of_characters:
             removed = []
             for character in one_of_set:
-                if (self.check_on_destroyed(character) and
-                    character.position == coordinate):
+                if self.check_on_destroyed(character) and character.position == coordinate:
                     removed.append(character)
-            for b in removed:
-                one_of_set.remove(b)
+            self.scoring_or_gameover(removed, one_of_set)
+
+    def scoring_or_gameover(self, removed_characters, original_set):
+        for removed_character in removed_characters:
+            original_set.remove(removed_character)
+            if isinstance(removed_character, BomberMan):
+                self.is_over = True
+                return
+            self.points += self.scoring[removed_character.__class__.__name__]
 
     def check_on_destroyed(self, character):
         if isinstance(character, Wall):
@@ -89,18 +107,15 @@ class Level:
 
     def moving(self, direction, character):
         if self.is_inside_field(direction, character):
-            count_of_steps = self.get_count_of_steps_which_available_throw_wall(direction, character)
-            for i in range(count_of_steps):
-                self.do_step(direction, character)
-                self.check_and_take_prizes(character)
+            count_of_steps = self.get_count_of_steps(direction, character)
+            self.do_step(direction, character, count_of_steps)
+            self.check_and_take_prizes(character)
 
     def is_inside_field(self, direction, character):
         future_coordinate = self.future_step(direction, character)
         is_inside_field = (
-            future_coordinate.x >= 0 and
-            future_coordinate.x <= self.width - 1 and
-            future_coordinate.y >= 0 and
-            future_coordinate.y <= self.height - 1
+            0 <= future_coordinate.x <= self.width - 1 and
+            0 <= future_coordinate.y <= self.height - 1
         )
         return is_inside_field
 
@@ -112,12 +127,12 @@ class Level:
             new_coordinate.y += self.direc[direction]
         return new_coordinate
 
-    def get_count_of_steps_which_available_throw_wall(self, direction, character):
+    def get_count_of_steps(self, direction, character):
         future_coordinate = self.future_step(direction, character)
         passable_wall = []
         all_impassable_wall = []
         for w in self.Wall:
-            if w.passability != None or w.passability != direction:
+            if w.passability is not None or w.passability != direction:
                 all_impassable_wall.append(w.position)
             if w.passability == direction:
                 passable_wall.append(w.position)
@@ -127,35 +142,42 @@ class Level:
             return 1
         return 0
 
-    def do_step(self, direction, character):
+    def do_step(self, direction, character, count_of_steps):
         if direction == 'r' or direction == 'l':
-            character.position.x += self.direc[direction]
+            character.position.x += count_of_steps * self.direc[direction]
         else:
-            character.position.y += self.direc[direction]
+            character.position.y += count_of_steps * self.direc[direction]
 
     def is_monster_kill_BM(self):
         all_coordinates = {f.position for f in self.Monster}
         for b in self.BomberMan:
             if b.position in all_coordinates:
                 b.count_of_lives -= 1
-                self.is_BM_lifes_changed = True
+                self.is_BM_lives_changed = True
                 if b.count_of_lives < 1:
-                    self.is_gameover = True
+                    self.is_over = True
 
     def check_and_take_prizes(self, character):
         if isinstance(character, BomberMan):
             removed = []
             for p in self.Prizes:
-                if p.activate(character):
+                if p.intersection_with_bm(character):
                     removed.append(p)
             for b in removed:
+                self.points += 5
                 self.Prizes.remove(b)
 
-    # def set_immutable()
+    def is_win(self):
+        if self.is_over:
+            return False
+        for w in self.Wall:
+            if w.is_destroyed:
+                return False
+        return True
 
 
 if __name__ == '__main__':
-    g = Level("input_test.txt")
+    g = Level("level1.txt")
     # print()
     # k = copy.deepcopy(g.Wall)
     # for p in g.Wall:
