@@ -17,10 +17,7 @@ class Visualization(QMainWindow):
     def __init__(self, file_names):
         super().__init__()
         self.file_names = file_names
-        all_levels = []
-        for f in file_names:
-            all_levels.append(Level(f))
-        self.game = Game(all_levels, 5, 'game1')
+        self.game = Game(file_names, 'game1')
         self.height = 768
         self.width = 1366
 
@@ -56,10 +53,7 @@ class Visualization(QMainWindow):
         qp.end()
 
     def new_game(self):
-        all_levels = []
-        for f in self.file_names:
-            all_levels.append(Level(f))
-        self.game = Game(all_levels, 5, 'game1')
+        self.game = Game(self.file_names, 'game1')
         self.central_widget = CentralWidget(self, self.game, self.height, self.width, self.score_window, self.scoreboard)
 
     def show_scores(self):

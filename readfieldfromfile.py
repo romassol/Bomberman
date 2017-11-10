@@ -8,7 +8,6 @@ from bomb import Bomb
 from bomberman import BomberMan
 from wall import Wall
 from monster import Monster
-from door import Door
 from prizebomb import PrizeBomb
 from prizelife import PrizeLife
 

@@ -197,7 +197,7 @@ class CentralWidget(QWidget):
         self.timer_bomb = self.zeroize_timer(self.timer_bomb)
 
         if not self.level.is_BM_lives_changed:
-            self.level.is_monster_kill_BM()
+            self.level.bm_intersect_with_monster()
             self.timer_immortality = 1
             self.bomberman_image.set_picture(self.size_square, self.images_folder + "person.png")
         else:
@@ -264,7 +264,7 @@ class CentralWidget(QWidget):
         self.repaint()
 
     def set_bomb(self):
-        power = self.level.put_bomb()
+        power = self.level.put_bomb_and_get_bomb_power()
         if power > 1:
             self.bombs.pop().hide()
         self.bomb.move(

@@ -1,9 +1,13 @@
+from level import Level
+
+
 class Game:
-    def __init__(self, levels, records, game_type):
+    def __init__(self, levels_name, game_type):
         self.game_type = game_type
-        self.levels = levels
+        self.levels = []
+        for level_name in levels_name:
+            self.levels.append(Level(level_name))
         self.current_level_index = 0
-        self.records = records
         self.points = 0
 
     def get_scoring(self):
