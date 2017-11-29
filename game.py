@@ -2,8 +2,7 @@ from level import Level
 
 
 class Game:
-    def __init__(self, levels_name, game_type):
-        self.game_type = game_type
+    def __init__(self, levels_name):
         self.levels = []
         for level_name in levels_name:
             self.levels.append(Level(level_name))
@@ -17,7 +16,8 @@ class Game:
         return self.levels[self.current_level_index]
 
     def try_go_to_the_next_level(self):
-        if self.levels[self.current_level_index].is_win() and not self.is_current_level_last():
+        if self.levels[self.current_level_index].is_win() and\
+                not self.is_current_level_last():
             self.points += self.get_current_level().points
             self.current_level_index += 1
             return True
@@ -30,8 +30,5 @@ class Game:
         return self.levels[self.current_level_index].is_over
 
     def is_win(self):
-        return self.is_current_level_last() and self.levels[self.current_level_index].is_win()
-
-
-if __name__ == '__main__':
-    pass
+        return self.is_current_level_last() and\
+               self.levels[self.current_level_index].is_win()

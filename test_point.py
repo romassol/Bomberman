@@ -26,5 +26,6 @@ class TestPoint(TestCase):
         p1 = Point(42, -77)
         self.assertEqual(str(p1), '42 -77')
 
+
 if __name__ == '__main__':
     main()

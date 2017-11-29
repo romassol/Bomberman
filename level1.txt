@@ -1,5 +1,5 @@
 {
-    "monster speed": 100
+    "monster speed": 1
     "field":
         # # # # # # *
         # B . . . M *

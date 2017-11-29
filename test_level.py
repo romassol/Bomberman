@@ -11,49 +11,53 @@ from bomb import Bomb
 
 class TestLevel(TestCase):
 
-    def test_put_bomb_and_get_bomb_power(self):
+    def test_put_bomb_and_get_bomb_index(self):
         level = Level('level1.txt')
-        bomb_power = level.put_bomb_and_get_bomb_power()
-        self.assertEqual(Point(1, 1), level.Bomb.position)
-        self.assertEqual(1, bomb_power)
-        self.assertTrue(level.Bomb.is_active)
+        index = level.put_bomb_and_get_bomb_index()
+        self.assertEqual(Point(1, 1), level.Bombs[index].position)
+        self.assertEqual(1, level.Bombs[index].power)
+        self.assertTrue(level.Bombs[index].is_active)
 
-    def test_put_bomb_in_backpack_and_get_bomb_power(self):
+    def test_put_bomb_in_backpack_and_get_bomb_index(self):
         level = Level('level1.txt')
         for b in level.BomberMan:
             bm = b
         bm.backpack.append(Bomb(bm, power=2))
-        bomb_power = level.put_bomb_and_get_bomb_power()
-        self.assertEqual(Point(1, 1), level.Bomb.position)
-        self.assertEqual(2, bomb_power)
+        index = level.put_bomb_and_get_bomb_index()
+        self.assertEqual(Point(1, 1), level.Bombs[index].position)
+        self.assertEqual(2, level.Bombs[index].power)
         self.assertEqual(0, len(bm.backpack))
-        self.assertTrue(level.Bomb.is_active)
+        self.assertTrue(level.Bombs[index].is_active)
 
     def test_get_explode_area(self):
         level = Level('level1.txt')
-        level.put_bomb_and_get_bomb_power()
-        explode_area = level.get_explode_area()
-        self.assertEqual(set([Point(2, 1), Point(1, 2), Point(1, 1)]), explode_area)
+        index = level.put_bomb_and_get_bomb_index()
+        explode_area = level.get_explode_area(index)
+        self.assertEqual({Point(2, 1), Point(1, 2), Point(1, 1)}, explode_area)
 
     def test_add_available_point_on_Y(self):
         level = Level('level1.txt')
-        level.put_bomb_and_get_bomb_power()
-        not_destroyed_walls = [w.position for w in level.Wall if not w.is_destroyed]
+        index = level.put_bomb_and_get_bomb_index()
+        not_destroyed_walls = [w.position
+                               for w in level.Wall if not w.is_destroyed]
         points = set()
-        range_list = [range(-1, -level.bomb_power - 1, -1), range(level.bomb_power + 1)]
+        range_list = [range(-1, -level.bombs_power[index] - 1, -1),
+                      range(level.bombs_power[index] + 1)]
         for p in range_list:
-            level.add_available_point_on_Y(not_destroyed_walls, points, p)
-        self.assertEqual(set([Point(1, 2), Point(1, 1)]), points)
+            level.add_available_point_on_Y(not_destroyed_walls, points, p, index)
+        self.assertEqual({Point(1, 2), Point(1, 1)}, points)
 
     def test_add_available_point_on_X(self):
         level = Level('level1.txt')
-        level.put_bomb_and_get_bomb_power()
-        not_destroyed_walls = [w.position for w in level.Wall if not w.is_destroyed]
+        index = level.put_bomb_and_get_bomb_index()
+        not_destroyed_walls = [w.position
+                               for w in level.Wall if not w.is_destroyed]
         points = set()
-        range_list = [range(-1, -level.bomb_power - 1, -1), range(level.bomb_power + 1)]
+        range_list = [range(-1, -level.bombs_power[index] - 1, -1),
+                      range(level.bombs_power[index] + 1)]
         for p in range_list:
-            level.add_available_point_on_X(not_destroyed_walls, points, p)
-        self.assertEqual(set([Point(1, 1), Point(2, 1)]), points)
+            level.add_available_point_on_X(not_destroyed_walls, points, p, index)
+        self.assertEqual({Point(1, 1), Point(2, 1)}, points)
 
     def test_explode_bomb(self):
         level = Level('level1.txt')
@@ -61,16 +65,19 @@ class TestLevel(TestCase):
             bm = b
         walls = copy.deepcopy(level.Wall)
         monsters = copy.deepcopy(level.Monster)
-        previous_monsters_positions = [monster.position for monster in monsters]
-        previous_walls_positions = [wall.position for wall in walls if wall.is_destroyed]
+        previous_monsters_positions = [monster.position
+                                       for monster in monsters]
+        previous_walls_positions = [wall.position
+                                    for wall in walls if wall.is_destroyed]
         for i in range(4):
             level.moving('r', bm)
-        level.put_bomb_and_get_bomb_power()
+        index = level.put_bomb_and_get_bomb_index()
         level.moving('l', bm)
-        level.explode_bomb()
+        level.explode_bomb(index)
         monsters_positions = [monster.position for monster in level.Monster]
-        walls_positions = [wall.position for wall in level.Wall if wall.is_destroyed]
-        self.assertFalse(level.Bomb.is_active)
+        walls_positions = [wall.position
+                           for wall in level.Wall if wall.is_destroyed]
+        self.assertFalse(level.Bombs[index].is_active)
         destroyed_walls = set()
         for w in previous_walls_positions:
             if w not in walls_positions:
@@ -87,14 +94,18 @@ class TestLevel(TestCase):
         level = Level('level1.txt')
         walls = copy.deepcopy(level.Wall)
         monsters = copy.deepcopy(level.Monster)
-        previous_monsters_positions = [monster.position for monster in monsters]
-        previous_walls_positions = [wall.position for wall in walls if wall.is_destroyed]
+        previous_monsters_positions = [monster.position
+                                       for monster in monsters]
+        previous_walls_positions = [wall.position
+                                    for wall in walls if wall.is_destroyed]
         list_of_characters = [level.BomberMan, level.Monster, level.Wall]
-        explode_area = set([Point(6, 1), Point(5, 1), Point(4, 1), Point(5, 2)])
+        explode_area = {Point(6, 1), Point(5, 1), Point(4, 1), Point(5, 2)}
         for point in explode_area:
-            level.delete_character_in_all_sets_and_scoring(list_of_characters, point)
+            level.delete_character_in_all_sets_and_scoring(
+                list_of_characters, point)
         monsters_positions = [monster.position for monster in level.Monster]
-        walls_positions = [wall.position for wall in level.Wall if wall.is_destroyed]
+        walls_positions = [wall.position
+                           for wall in level.Wall if wall.is_destroyed]
         destroyed_walls = set()
         for w in previous_walls_positions:
             if w not in walls_positions:
@@ -112,15 +123,18 @@ class TestLevel(TestCase):
         for w in level.Wall:
             if w.position in [Point(6, 1), Point(5, 2)]:
                 destroyed_walls.append(w)
-        level.remove_characters_and_scoring_or_gameover(destroyed_walls, level.Wall)
+        level.remove_characters_and_scoring_or_gameover(
+            destroyed_walls, level.Wall)
         self.assertEqual(10, level.points)
         killed_monsters = []
         for m in level.Monster:
             if m.position in [Point(5, 1)]:
                 killed_monsters.append(m)
-        level.remove_characters_and_scoring_or_gameover(killed_monsters, level.Monster)
+        level.remove_characters_and_scoring_or_gameover(
+            killed_monsters, level.Monster)
         self.assertEqual(110, level.points)
-        level.remove_characters_and_scoring_or_gameover([bm for bm in level.BomberMan], level.BomberMan)
+        level.remove_characters_and_scoring_or_gameover(
+            [bm for bm in level.BomberMan], level.BomberMan)
         self.assertTrue(level.is_over)
 
     def test_check_on_destroyed(self):
@@ -150,7 +164,7 @@ class TestLevel(TestCase):
         self.assertEqual(Point(1, 2), bm.position)
 
     def test_is_inside_field(self):
-        level = Level('level3.txt')
+        level = Level('level4.txt')
         for b in level.BomberMan:
             bm = b
         self.assertFalse(level.is_inside_field('r', bm))
@@ -162,10 +176,10 @@ class TestLevel(TestCase):
         level = Level('level3.txt')
         for b in level.BomberMan:
             bm = b
-        self.assertEqual(Point(10, 6), level.get_future_step('r', bm))
-        self.assertEqual(Point(8, 6), level.get_future_step('l', bm))
-        self.assertEqual(Point(9, 5), level.get_future_step('u', bm))
-        self.assertEqual(Point(9, 7), level.get_future_step('d', bm))
+        self.assertEqual(Point(9, 5), level.get_future_step('r', bm))
+        self.assertEqual(Point(7, 5), level.get_future_step('l', bm))
+        self.assertEqual(Point(8, 4), level.get_future_step('u', bm))
+        self.assertEqual(Point(8, 6), level.get_future_step('d', bm))
 
     def test_get_count_of_steps(self):
         level = Level("level2.txt")
@@ -225,10 +239,10 @@ class TestLevel(TestCase):
             bm = b
         level.moving('l', bm)
         level.moving('u', bm)
-        level.put_bomb_and_get_bomb_power()
+        index = level.put_bomb_and_get_bomb_index()
         level.moving('r', bm)
         level.moving('d', bm)
-        level.explode_bomb()
+        level.explode_bomb(index)
         self.assertTrue(level.is_win())
 
 

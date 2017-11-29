@@ -11,14 +11,15 @@ from bomb import Bomb
 
 
 class Level:
-    def __init__(self, file_name):
+    def __init__(self, file_name, count_of_active_bomb=2):
         r = Reader(file_name)
         self.__dict__ = r.objects
-
+        self.Bombs = []
         for b in self.BomberMan:
-            self.Bomb = Bomb(b)
+            for i in range(count_of_active_bomb):
+                self.Bombs.append(Bomb(b))
 
-        self.set_speed_all_monsters(r)
+        self.monster_speed = r.monster_speed
 
         self.height = r.height
         self.width = r.width
@@ -29,67 +30,82 @@ class Level:
 
         self.is_BM_lives_changed = False
 
-        self.bomb_power = self.Bomb.power
+        self.bombs_power = []
+        for bomb in self.Bombs:
+            self.bombs_power.append(bomb.power)
         self.direc = {'r': 1, 'l': -1, 'u': -1, 'd': 1}
 
-    def set_speed_all_monsters(self, r):
-        for m in self.Monster:
-            m.set_speed(r.monster_speed)
-
-    def put_bomb_and_get_bomb_power(self):
+    def put_bomb_and_get_bomb_index(self):
+        index_of_not_active_bomb = self.get_index_of_not_active_bomb()
+        if index_of_not_active_bomb is None:
+            return None
         for b in self.BomberMan:
             if not b.backpack:
-                self.Bomb = Bomb(b)
+                self.Bombs[index_of_not_active_bomb] = Bomb(b)
                 self.points -= 10
             else:
-                self.Bomb = b.backpack.pop()
-            self.Bomb.position = copy.deepcopy(b.position)
-        self.Bomb.is_active = True
-        self.bomb_power = self.Bomb.power
-        return self.bomb_power
+                self.Bombs[index_of_not_active_bomb] = b.backpack.pop()
+            self.Bombs[index_of_not_active_bomb].position = copy.deepcopy(b.position)
+        self.Bombs[index_of_not_active_bomb].is_active = True
+        self.bombs_power[index_of_not_active_bomb] = self.Bombs[index_of_not_active_bomb].power
+        return index_of_not_active_bomb
 
-    def get_explode_area(self):
-        not_destroyed_walls = [f.position for f in self.Wall if not f.is_destroyed]
+    def get_index_of_not_active_bomb(self):
+        for i in range(len(self.Bombs)):
+            if not self.Bombs[i].is_active:
+                return i
+        return None
+
+    def get_explode_area(self, index_of_bomb):
+        not_destroyed_walls = [f.position
+                               for f in self.Wall if not f.is_destroyed]
         points = set()
-        range_list = [range(-1, -self.bomb_power - 1, -1), range(self.bomb_power + 1)]
+        range_list = [range(-1, -self.bombs_power[index_of_bomb] - 1, -1),
+                      range(self.bombs_power[index_of_bomb] + 1)]
         for p in range_list:
-            self.add_available_point_on_Y(not_destroyed_walls, points, p)
-            self.add_available_point_on_X(not_destroyed_walls, points, p)
+            self.add_available_point_on_Y(not_destroyed_walls, points, p, index_of_bomb)
+            self.add_available_point_on_X(not_destroyed_walls, points, p, index_of_bomb)
         return points
 
-    def add_available_point_on_Y(self, not_destroyed_walls, points, range_list):
+    def add_available_point_on_Y(self, not_destroyed_walls,
+                                 points, range_list, index_of_bomb):
         for i in range_list:
-            if 0 <= self.Bomb.position.y + i <= self.height - 1:
-                point = Point(self.Bomb.position.x, self.Bomb.position.y + i)
+            if 0 <= self.Bombs[index_of_bomb].position.y + i <= self.height - 1:
+                point = Point(self.Bombs[index_of_bomb].position.x, self.Bombs[index_of_bomb].position.y + i)
                 if point in not_destroyed_walls:
                     continue
                 points.add(point)
 
-    def add_available_point_on_X(self, not_destroyed_walls, points, range_list):
+    def add_available_point_on_X(self, not_destroyed_walls,
+                                 points, range_list, index_of_bomb):
         for i in range_list:
-            if 0 <= self.Bomb.position.x + i <= self.width - 1:
-                point = Point(self.Bomb.position.x + i, self.Bomb.position.y)
+            if 0 <= self.Bombs[index_of_bomb].position.x + i <= self.width - 1:
+                point = Point(self.Bombs[index_of_bomb].position.x + i, self.Bombs[index_of_bomb].position.y)
                 if point in not_destroyed_walls:
                     continue
                 points.add(point)
 
-    def explode_bomb(self):
+    def explode_bomb(self, index_of_bomb):
         list_of_characters = [self.BomberMan, self.Monster, self.Wall]
-        if self.Bomb.is_active:
-            explode_area = self.get_explode_area()
+        if self.Bombs[index_of_bomb].is_active:
+            explode_area = self.get_explode_area(index_of_bomb)
             for point in explode_area:
-                self.delete_character_in_all_sets_and_scoring(list_of_characters, point)
-            self.Bomb.is_active = False
+                self.delete_character_in_all_sets_and_scoring(
+                    list_of_characters, point)
+            self.Bombs[index_of_bomb].is_active = False
 
-    def delete_character_in_all_sets_and_scoring(self, list_of_characters, coordinate):
+    def delete_character_in_all_sets_and_scoring(self, list_of_characters,
+                                                 coordinate):
         for one_of_set in list_of_characters:
             removed = []
             for character in one_of_set:
-                if self.check_on_destroyed(character) and character.position == coordinate:
+                if self.check_on_destroyed(character) and\
+                                character.position == coordinate:
                     removed.append(character)
             self.remove_characters_and_scoring_or_gameover(removed, one_of_set)
 
-    def remove_characters_and_scoring_or_gameover(self, removed_characters, original_set):
+    def remove_characters_and_scoring_or_gameover(self, removed_characters,
+                                                  original_set):
         for removed_character in removed_characters:
             original_set.remove(removed_character)
             if isinstance(removed_character, BomberMan):
@@ -171,7 +187,3 @@ class Level:
             if w.is_destroyed:
                 return False
         return True
-
-
-if __name__ == '__main__':
-    g = Level("level1.txt")

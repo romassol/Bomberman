@@ -1,7 +1,8 @@
-from PyQt5.QtWidgets import QDialog, QTableWidget, QTableWidgetItem, QApplication, QVBoxLayout, QDialogButtonBox
+from PyQt5.QtWidgets import QDialog, QTableWidget, QTableWidgetItem,\
+    QApplication, QVBoxLayout, QDialogButtonBox
 from PyQt5.QtCore import Qt
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-from Scoreboard import Scoreboard
+from scoreboard import Scoreboard
 import operator
 
 
@@ -31,7 +32,7 @@ class ScoringWindow(QDialog):
     <td class='score'>{}</td>
     </tr>"""
 
-    def __init__(self, scoreboard, parent, game_name):
+    def __init__(self, scoreboard, parent):
         super().__init__(parent)
         self.scoreboard = scoreboard
 
@@ -46,36 +47,36 @@ class ScoringWindow(QDialog):
 
         self.setLayout(box_layout)
         self.setWindowTitle("Scores")
-        self.prepare(game_name)
+        self.sort_and_view_scoreboard()
 
     @staticmethod
     def _make_row(place, name, score):
         return ScoringWindow._ROW_TEMPLATE.format(place, name, score)
 
-    def show_current(self, game_name, player_name, player_scores):
-        scores = self.scoreboard.get_scores(game_name)
-        # scores = sorted(scores, key=lambda x: x[1], reverse=True)
-        new_scores = scores[:7]
-        flag = False
+    def show_current(self, player_name, player_scores):
+        new_scores = self.scoreboard._scores[:7]
+        current_player_in_top_of_7 = False
         for name, scores in new_scores:
             if name == player_name:
-                flag = True
-        if not flag:
+                current_player_in_top_of_7 = True
+        if not current_player_in_top_of_7:
             new_scores += [[player_name, player_scores]]
 
         table = ''.join(ScoringWindow._make_row(place + 1, name, new_scores)
-                        for (place, (name, new_scores)) in enumerate(new_scores))
+                        for (place, (name, new_scores))
+                        in enumerate(new_scores))
 
-        self._viewer.setHtml(ScoringWindow._TEMPLATE.format('Таблица рекордов', table))
+        self._viewer.setHtml(ScoringWindow._TEMPLATE.format(
+            'Таблица рекордов', table))
         self.show()
 
-    def prepare(self, game_name):
-        scores = self.scoreboard.get_scores(game_name)
-        scores = sorted(scores, key=lambda x: (-x[1], x[0]))
-        # scores = sorted(scores, key=operator.itemgetter(0, 1))
+    def sort_and_view_scoreboard(self):
+        scoreboard = sorted(self.scoreboard._scores,
+                            key=lambda x: (-x[1], x[0]))
 
-        table = ''.join(ScoringWindow._make_row(place + 1, name, scores)
-                        for (place, (name, scores)) in enumerate(scores))
+        table = ''.join(ScoringWindow._make_row(place + 1, name, scoreboard)
+                        for (place, (name, scoreboard))
+                        in enumerate(scoreboard))
 
-        self._viewer.setHtml(ScoringWindow._TEMPLATE.format('Таблица рекордов', table))
-
+        self._viewer.setHtml(ScoringWindow._TEMPLATE.format(
+            'Таблица рекордов', table))

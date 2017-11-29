@@ -23,7 +23,3 @@ class IconImage(QPushButton):
         self.setStyleSheet("QPushButton {border:none; "
                            "background-color:transparent;}")
         self.show()
-
-    # def intersection_with_character(self, character):
-        
-
